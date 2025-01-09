@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متتبع الحضور </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #4facfe, #fc7ed6);
+            color: #333;
+        }
+
+        header {
+            background-color: #fff;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: #007acc;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table th, table td {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #e76dc4;
+            color: #fff;
+        }
+
+        .yellow {
+            background-color: yellow;
+        }
+
+        .red {
+            background-color: red;
+            color: white;
+        }
+
+        .green {
+            background-color: lightgreen;
+        }
+
+        .orange {
+            background-color: orange;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #e76dc4;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005f99;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f1f1f1;
+        }
+
+        form {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        form input {
+            width: 40%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        form button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4facfe;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        form button:hover {
+            background-color: #007acc;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>متتبع الحضور </h1>
+    </header>
+
+    <div class="container">
+        <form method="POST" action="insert_attendee.php">
+            <input type="text" name="name" placeholder="Name" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <button type="submit">إضافة</button>
+        </form>
+
+        <div class="table-container">
+            <table id="attendance-table">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>الاجتماع 1</th>
+                        <th>الاجتماع 2</th>
+                        <th>الاجتماع 3</th>
+                        <th>الحالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Attendance Tracker</p>
+    </footer>
+
+    <script>
+        
+        function loadAttendees() {
+            fetch('attendance.php')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('#attendance-table tbody');
+                    tableBody.innerHTML = ''; // Clear any existing data
+
+                    data.forEach(attendee => {
+                        const row = `<tr>
+                            <td>${attendee.name}</td>
+                            <td>${attendee.email}</td>
+                            <td class="green" onclick="handleClick('meeting1', this)">${attendee.meeting1}</td>
+                            <td class="green" onclick="handleClick('meeting2', this)">${attendee.meeting2}</td>
+                            <td class="green" onclick="handleClick('meeting3', this)">${attendee.meeting3}</td>
+                            <td>حاضر</td>
+                            <td></td>
+                        </tr>`;
+                        tableBody.insertAdjacentHTML('beforeend', row);
+                    });
+                });
+        }
+
+        
+        document.addEventListener('DOMContentLoaded', loadAttendees);
+
+        
+        const states = {
+            meeting1: 0,
+            meeting2: 0,
+            meeting3: 0,
+        };
+
+        
+        function handleClick(meeting, cell) {
+            const statusCell = cell.parentElement.children[5];
+            states[meeting]++;
+            if (states[meeting] === 1) {
+                cell.classList.remove('green');
+                cell.classList.add('yellow');
+                cell.textContent = '1';
+                statusCell.textContent = 'الإنذار الأول';
+            } else if (states[meeting] === 2) {
+                cell.classList.remove('yellow');
+                cell.classList.add('orange');
+                cell.textContent = '2';
+                statusCell.textContent = 'الإنذار الثاني';
+            } else if (states[meeting] === 3) {
+                cell.classList.remove('orange');
+                cell.classList.add('red');
+                cell.textContent = '3';
+                statusCell.textContent = 'مستبعد';
+                const actionCell = statusCell.nextElementSibling;
+                actionCell.innerHTML = '<button onclick="deleteRow(this)">حذف</button>';
+            }
+        }
+
+        
+        function deleteRow(button) {
+            const row = button.parentElement.parentElement;
+            row.remove();
+        }
+    </script>
+
+</body>
+</html>
